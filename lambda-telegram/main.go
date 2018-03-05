@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/LaurenceUsas/car-ad-helper/dynamo-lambda"
+	"github.com/LaurenceUsas/car-ad-helper/api-dynamo"
+	"github.com/LaurenceUsas/car-ad-helper/api-scrapper"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -177,8 +176,10 @@ func respondAddLink(link string, user *cahdynamo.DBUser, bot *tgbotapi.BotAPI, d
 		} else {
 			// Store all cars so we can check later for newly appeared ones.
 			// Store Query
-			sr := NewScrapeRequest(link)
-			resp := requestScraper(sr)
+			scraperURL := os.Getenv("URL_SCRAPER")
+			scrapper := scrapper.NewScrapperAPI(scraperURL)
+			resp := scrapper.Invoke(link)
+
 			user.CarsAdd(resp.Results)
 			user.QueryAdd(link)
 			err := db.Store(user)
@@ -218,9 +219,11 @@ func respondCheckUser(defaultMsg string, user *cahdynamo.DBUser, bot *tgbotapi.B
 
 	allCars := map[string]bool{}
 	// Collect results from all requests.
+	scraperURL := os.Getenv("URL_SCRAPER")
+	scrapper := scrapper.NewScrapperAPI(scraperURL)
+
 	for _, v := range user.Queries {
-		sr := NewScrapeRequest(v)
-		resp := requestScraper(sr)
+		resp := scrapper.Invoke(v)
 
 		for kk := range resp.Results {
 			allCars[kk] = true
@@ -248,43 +251,6 @@ func respondCheckUser(defaultMsg string, user *cahdynamo.DBUser, bot *tgbotapi.B
 		msg := tgbotapi.NewMessage(user.ID, defaultMsg)
 		bot.Send(msg)
 	}
-}
-
-type ScrapeRequest struct {
-	Queries string
-}
-
-func NewScrapeRequest(query string) *ScrapeRequest { // Force using difference request for each query
-	sr := &ScrapeRequest{
-		Queries: query,
-	}
-	return sr
-}
-
-type ScrapeResponse struct {
-	Results map[string]bool
-}
-
-func NewScrapeResponse(results map[string]bool) *ScrapeResponse {
-	sr := &ScrapeResponse{
-		Results: results,
-	}
-	return sr
-}
-
-func requestScraper(sr *ScrapeRequest) *ScrapeResponse {
-
-	b := new(bytes.Buffer)
-	json.NewEncoder(b).Encode(sr)
-
-	scraperURL := os.Getenv("URL_SCRAPER")
-	res, _ := http.Post(scraperURL, "application/json; charset=utf-8", b)
-
-	body, _ := ioutil.ReadAll(res.Body)
-	var respData ScrapeResponse
-	json.Unmarshal(body, &respData)
-
-	return &respData
 }
 
 func verifySearchLink(url string) bool {

@@ -1,0 +1,63 @@
+
+/*
+Now what’s a little bit different in the above example is that we’re using AtrrOr( value, fallback_value) in order to be sure we have data at all. This is kind of a short hand instead of writing a check if an attribute is found or not.
+
+For the title we can just plainly select the Contents of a *Selection, because it’s typically the only tag of its kind on a website: pageTitle = doc.Find("title").Contents().Text().
+
+func main() {
+    doc, _ := goquery.NewDocumentFromReader(strings.NewReader((htmlCode)))
+    doc.Find("h1").Each(func(i int, h1 *goquery.Selection) {
+        h1.Find("span").Each(func(j int, s *goquery.Selection) {
+            if s.HasClass("text") {
+                if p := h1.Next(); p != nil {
+                    if ps := p.Children().First(); ps != nil && ps.HasClass("text") {
+                        ps.ReplaceWithHtml(
+                            fmt.Sprintf("<span class=\"text\">%s%s</span>)", s.Text(), ps.Text()))
+                        h1.Remove()
+                    }
+                }
+            }
+        })
+    })
+    htmlResult, _ := doc.Html()
+    fmt.Println(htmlResult)
+}
+
+http://intogooglego.blogspot.lt/2015/05/day-7-goquery-html-parsing.html
+
+*/
+
+//Request with preset settings.
+//Request with URL
+
+//Based on URL get the list of options.
+
+//Download data and populate car database.
+//Create file to view + mark in osx with file tag.
+//Store in DB for prices
+
+//Compare received data with DB. If new - Send Notification/Make file(Mark Green)
+
+// Generating Query
+// u, err := url.Parse(address)
+// if err != nil {
+// 	log.Fatal(err)
+// }
+
+// https://gobyexample.com/url-parsing
+// u.Scheme = "https"
+// u.Host = "google.com"
+// q := u.Query()
+// q.Set("q", "golang")
+// u.RawQuery = q.Encode()
+// fmt.Println(u)
+
+// values := httpRequest.URL.Query()
+// values.Add(name, value)
+// httpRequest.URL.RawQuery = values.Encode()
+
+// Get HTTP request with generated query data from search query.
+// doc, err := goquery.NewDocumentFromResponse()
+// if err != nil {
+// 	log.Fatal(err)
+// }

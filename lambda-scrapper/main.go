@@ -6,32 +6,11 @@ import (
 	"log"
 	"strings"
 
+	"github.com/LaurenceUsas/car-ad-helper/api-scrapper"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
-
-type ScrapeRequest struct {
-	Queries string
-}
-
-func NewScrapeRequest(query string) *ScrapeRequest { // Force using difference request for each query
-	sr := &ScrapeRequest{
-		Queries: query,
-	}
-	return sr
-}
-
-type ScrapeResponse struct {
-	Results map[string]bool
-}
-
-func NewScrapeResponse(results map[string]bool) *ScrapeResponse {
-	sr := &ScrapeResponse{
-		Results: results,
-	}
-	return sr
-}
 
 func main() {
 	lambda.Start(Handler)
@@ -39,11 +18,11 @@ func main() {
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//unmarshal to object.
-	var req ScrapeRequest
+	var req scrapper.ScrapeRequest
 	json.Unmarshal([]byte(request.Body), &req)
 
 	l := getAutoplius(req.Queries)
-	sr := NewScrapeResponse(l)
+	sr := scrapper.NewScrapeResponse(l)
 	srJson, _ := json.Marshal(sr)
 	log.Printf("Returning %v ", srJson)
 

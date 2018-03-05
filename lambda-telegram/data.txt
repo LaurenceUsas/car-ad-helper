@@ -1,0 +1,51 @@
+token: 477956583:AAFqmt78SXk4OrSaGQSQ110dPNopun816EE
+
+Has to:
+    Send users new cars.
+    One User - One instance.
+    1. Hardcode User ID and searches
+    
+    Comands:
+        Register
+            - add this user ID to the ones that will follow news.
+        Deregister
+            - if user in DB exists delete.
+        MySearch
+            - returns list of all saved searches by user
+        AddSearch
+            - if user not registered. Tell to register.
+            - add search to tracked.
+        DeteleSearch
+            - if user not registered. Tell to register.
+            - delete search from tracked.
+
+const (
+	TelegramToken = "AAFqmt78SXk4OrSaGQSQ110dPNopun816EE"
+	TelegramURL   = "https://api.telegram.org/bot477956583:AAFqmt78SXk4OrSaGQSQ110dPNopun816EE/sendMessage"
+)
+
+// update.Message.From.FirstName
+// {"message":{"chat": {"id" : "00000000001", "first_name": "Auto Sheduler"}, "text":"/check_all 7a6iafn3yh4wtg54kafoa7"}}
+//{"message":{"chat": {"id" : 1, "first_name": "Auto Sheduler"}, "text":"/check_all 7a6iafn3yh4wtg54kafoa7"}}
+/*
+{
+	"message":
+{
+    "message_id": 0,
+    "from": {
+        "id": 1,
+        "is_bot": true,
+        "first_name": "Car",
+        "last_name": "Helper",
+        "language_code": "en-GB"
+    },
+    "chat": {
+        "id": 0000001,
+        "first_name": "Car",
+        "last_name": "Helper",
+        "type": "private"
+    },
+    "date": 1000000000,
+    "text": "/check_all 7a6iafn3yh4wtg54kafoa7",
+}
+
