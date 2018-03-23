@@ -1,6 +1,7 @@
 package cahdynamo
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -66,7 +67,7 @@ func (dbu *DBUser) QueryDeleteString(input string) {
 
 // Delete User.Queries[ID]
 func (dbu *DBUser) QueryDeleteID(input int) {
-	if dbu.Queries == nil {
+	if dbu.Queries == nil || len(dbu.Queries) <= input {
 		return
 	}
 	dbu.Queries = append(dbu.Queries[:input], dbu.Queries[input+1:]...)
@@ -156,7 +157,6 @@ func (api *DynamoAPI) Retrieve(userID int64) (*DBUser, error) {
 		Region: aws.String(api.Region)},
 	)
 	if err != nil {
-		fmt.Println(1)
 		return nil, err
 	}
 
@@ -168,22 +168,20 @@ func (api *DynamoAPI) Retrieve(userID int64) (*DBUser, error) {
 		},
 	})
 	if err != nil {
-		fmt.Println(2)
-		fmt.Println()
 		return nil, err
 	}
 
 	user := DBUser{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &user)
 	if err != nil {
-		fmt.Println(3)
 		return nil, err
 	}
 
 	//TODO Better check.
 	if user.ID == 0 {
-		log.Printf("Could not find user [%d]\n", userID)
-		return nil, nil
+		msg := fmt.Sprintf("Could not find user [%d]\n", userID)
+		log.Println(msg)
+		return nil, errors.New(msg)
 	}
 	log.Printf("Retrieve of user [%v] successful", userID)
 	return &user, nil
@@ -219,7 +217,7 @@ func (api *DynamoAPI) RetrieveAll() ([]DBUser, error) {
 }
 
 // Delete DBUser from DynamoDB
-func (api *DynamoAPI) Delete(item DBUser) error {
+func (api *DynamoAPI) Delete(item *DBUser) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(api.Region)},
 	)
@@ -227,10 +225,12 @@ func (api *DynamoAPI) Delete(item DBUser) error {
 		return err
 	}
 
+	id := strconv.Itoa(int(item.ID))
+
 	input := &dynamodb.DeleteItemInput{
 		TableName: aws.String(api.TableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			api.TableName: {N: aws.String(strconv.Itoa(int(item.ID)))},
+			api.PrimaryKey: {N: aws.String(id)},
 		},
 	}
 

@@ -1,26 +1,14 @@
 package cahdynamo
 
 import (
-	"log"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-/*
-var fibTests = []struct {
-  n        int // input
-  expected int // expected result
-}{
-  {1, 1},
-  {2, 1},
-  {3, 2},
-  {4, 3},
-  {5, 5},
-  {6, 8},
-  {7, 13},
-}
-
-
-*/
+// go test -cover
+// go test -coverprofile=name
+// go tools cover -html=name
 
 const (
 	// Dynamo DB
@@ -29,49 +17,122 @@ const (
 	dbPrimaryKey = "userID"
 )
 
-func TestQueryAdd(t *testing.T) {
+func TestDBUser(t *testing.T) {
+	assert := assert.New(t)
+	id := int64(999999999999)
+	u := NewDBUser(id)
 
-}
+	assert.Equal(id, u.ID)
+	assert.Len(u.Queries, 0)
+	assert.Len(u.Cars, 0)
+	assert.Len(u.NotInterested, 0)
 
-func TestQueryDeleteString(t *testing.T) {
-
-}
-
-func TestQueryDeleteID(t *testing.T) {
-
-}
-
-func TestQueryExist(t *testing.T) {
-
-}
-
-func TestCarsAdd(t *testing.T) {
-
-}
-
-func TestStore(t *testing.T) {
-	api := NewDynamoAPI(dbRegion, dbTableName, dbPrimaryKey)
-	u := NewDBUser(999)
-	err := api.Store(u)
-	if err != nil {
-		t.Errorf("Error: %v", err)
+	// Add
+	a := "http://new.query.com/testing"
+	b := a + "1"
+	assert.Equal(false, u.QueryExist(a))
+	u.QueryAdd(a)
+	assert.Equal(true, u.QueryExist(a))
+	u.QueryAdd(b)
+	assert.Contains(u.Queries, a)
+	assert.Len(u.Queries, 2)
+	// Delete ID
+	u.QueryDeleteString("asd")
+	assert.Len(u.Queries, 2)
+	u.QueryDeleteString(a)
+	assert.NotContains(u.Queries, a)
+	// Delete string
+	u.QueryDeleteID(2)
+	assert.Contains(u.Queries, b)
+	u.QueryDeleteID(0)
+	assert.Len(u.Queries, 0)
+	// Cars Add
+	cars := map[string]bool{
+		"Car1": true,
+		"Car2": false,
 	}
+	u.CarsAdd(cars)
+	assert.Len(u.Cars, 2)
 }
 
-func TestRetrieve(t *testing.T) {
+func TestIntegrationDynamoDB(t *testing.T) {
+	assert := assert.New(t)
+	db := NewDynamoAPI(dbRegion, dbTableName, dbPrimaryKey)
+	id := int64(999999999999)
+	u := NewDBUser(id)
 
-	api := NewDynamoAPI(dbRegion, dbTableName, dbPrimaryKey)
-	u, err := api.Retrieve(327840258)
-	if err != nil {
-		t.Errorf("Error: %v", err)
-	}
-	log.Println(u)
+	_, err := db.Retrieve(id)
+	assert.NotEqual(nil, err)
+
+	_, err = db.RetrieveAll()
+	assert.Equal(nil, err)
+
+	db.Store(u)
+	db.Retrieve(id)
+	assert.Equal(nil, err)
+
+	err = db.Delete(u)
+	assert.NotEqual(nil, err)
+	db.Retrieve(id)
+	assert.NotEqual(nil, err)
+
+	db.Retrieve(id)
+	db.RetrieveAll()
+	// db.Store(u)
+	db.Retrieve(id)
 }
 
-func TestRetrieveAll(t *testing.T) {
+// func TestNewDBUser(t *testing.T) {
+// 	type args struct {
+// 		id int64
+// 	}
+// 	tests := []struct {
+// 		name string
+// 		args args
+// 		want *DBUser
+// 	}{
+// 	// TODO: Add test cases.
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			if got := NewDBUser(tt.args.id); !reflect.DeepEqual(got, tt.want) {
+// 				t.Errorf("NewDBUser() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
 
-}
-
-func TestDelete(t *testing.T) {
-
-}
+// func TestDBUser_QueryAdd(t *testing.T) {
+// 	type fields struct {
+// 		ID            int64
+// 		Queries       []string
+// 		Cars          map[string]bool
+// 		NotInterested map[string]bool
+// 		AutoUpdate    bool
+// 	}
+// 	type args struct {
+// 		new string
+// 	}
+// 	tests := []struct {
+// 		name   string
+// 		fields fields
+// 		args   args
+// 	}{
+// 		// TODO: Add test cases.
+// 		{},
+// 		{},
+// 		{},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			dbu := &DBUser{
+// 				ID:            tt.fields.ID,
+// 				Queries:       tt.fields.Queries,
+// 				Cars:          tt.fields.Cars,
+// 				NotInterested: tt.fields.NotInterested,
+// 				AutoUpdate:    tt.fields.AutoUpdate,
+// 			}
+// 			dbu.QueryAdd(tt.args.new)
+// 		})
+// 	}
+// }
