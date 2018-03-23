@@ -62,7 +62,7 @@ func checkAll( /*input string*/ ) {
 	}
 
 	for _, user := range users {
-		if user.AutoUpdate {
+		if user.AutoUpdate && len(user.Queries) != 0 {
 			respondCheckUser("", &user, bot, db)
 		}
 	}
@@ -198,9 +198,11 @@ func respondAddLink(link string, user *cahdynamo.DBUser, bot *tgbotapi.BotAPI, d
 func respondDeleteLink(command string, user *cahdynamo.DBUser, bot *tgbotapi.BotAPI, db *cahdynamo.DynamoAPI) {
 	msgText := ""
 	id, err := strconv.Atoi(command)
+	id--
+
 	if err != nil {
 		msgText = "Invalid number. Try integers. For example: 0"
-	} else if id > 0 && id <= len(user.Queries) { //If already exist
+	} else if id >= 0 && id <= len(user.Queries) { //If already exist
 		user.QueryDeleteID(id)
 		db.Store(user)
 		msgText = "Search deleted successfully."
