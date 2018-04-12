@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/LaurenceUsas/car-ad-helper/api-scrapper"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -29,6 +28,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	return events.APIGatewayProxyResponse{Body: string(srJson), StatusCode: 200}, nil
 }
 
+// Move to scrapper api?
 func getAutoplius(address string) map[string]bool {
 	list := make(map[string]bool, 2)
 

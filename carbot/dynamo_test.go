@@ -1,4 +1,4 @@
-package cahdynamo
+package carbot
 
 import (
 	"testing"

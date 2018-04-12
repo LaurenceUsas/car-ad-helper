@@ -1,4 +1,4 @@
-package cahdynamo
+package carbot
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ import (
 //				Dynamo DB User
 //================================================
 
-// Mapped to Dynamo DB database model.
+// DBUser Mapped to Dynamo DB database model.
 type DBUser struct {
 	ID            int64           `json:"userID"`
 	Queries       []string        `json:"Queries"`
@@ -25,6 +25,7 @@ type DBUser struct {
 	AutoUpdate    bool            `json:"AutoUpdate"`
 }
 
+//
 func NewDBUser(id int64) *DBUser {
 	u := &DBUser{
 		ID:            id,

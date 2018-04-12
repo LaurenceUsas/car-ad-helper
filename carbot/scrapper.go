@@ -1,4 +1,4 @@
-package scrapper
+package carbot
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type ScrapeRequest struct {
@@ -30,6 +31,7 @@ func NewScrapeResponse(results map[string]bool) *ScrapeResponse {
 	return sr
 }
 
+// ScrapperAPI is used to communicate with Scrapper Lambda Service.
 type ScrapperAPI struct {
 	endpoint string
 }
@@ -54,4 +56,14 @@ func (api *ScrapperAPI) Invoke(url string) *ScrapeResponse {
 	json.Unmarshal(body, &respData)
 
 	return &respData
+}
+
+func VerifySearchLink(url string) bool {
+	if strings.Contains(url, "https://autoplius.lt/") {
+		resp, _ := http.Get(url)
+		if resp.StatusCode == 200 {
+			return true
+		}
+	}
+	return false
 }
