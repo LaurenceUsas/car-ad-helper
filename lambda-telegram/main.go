@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/LaurenceUsas/car-ad-helper/carbot"
@@ -39,7 +40,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 200}, nil
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusInternalServerError}, nil
 	}
 	return events.APIGatewayProxyResponse{Body: "OK", StatusCode: 200}, nil
 }

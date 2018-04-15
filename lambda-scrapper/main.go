@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
+	"github.com/LaurenceUsas/car-ad-helper/carbot"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -17,19 +19,28 @@ func main() {
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//unmarshal to object.
-	var req scrapper.ScrapeRequest
+	var req carbot.ScrapeRequest
 	json.Unmarshal([]byte(request.Body), &req)
 
-	l := getAutoplius(req.Queries)
-	sr := scrapper.NewScrapeResponse(l)
-	srJson, _ := json.Marshal(sr)
+	l, err := getAutoplius(req.Queries)
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusInternalServerError}, nil
+	}
+
+	sr := carbot.NewScrapeResponse(l)
+	srJson, err := json.Marshal(sr)
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: http.StatusInternalServerError}, nil
+	}
+
 	log.Printf("Returning %v ", srJson)
 
 	return events.APIGatewayProxyResponse{Body: string(srJson), StatusCode: 200}, nil
 }
 
-// Move to scrapper api?
-func getAutoplius(address string) map[string]bool {
+func getAutoplius(address string) (map[string]bool, error) {
+	const nextPageTag = "Kitas"
+
 	list := make(map[string]bool, 2)
 
 	url := strings.TrimPrefix(address, "https://autoplius.lt") // prep first. Storing with prefix to db for easier human lookup
@@ -38,7 +49,7 @@ func getAutoplius(address string) map[string]bool {
 		fmt.Printf("Checking URL [%s]\n", url)
 		doc, err := goquery.NewDocument("https://autoplius.lt" + url)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		//Links to the cars.
@@ -50,7 +61,7 @@ func getAutoplius(address string) map[string]bool {
 		// Link to next page.
 		url = ""
 		doc.Find(".next").EachWithBreak(func(i int, s *goquery.Selection) bool {
-			if strings.Contains(s.Text(), "Kitas") {
+			if strings.Contains(s.Text(), nextPageTag) {
 				url, _ = s.Attr("href")
 				if url != "" {
 					return false
@@ -59,5 +70,5 @@ func getAutoplius(address string) map[string]bool {
 			return true
 		})
 	}
-	return list
+	return list, nil
 }
